@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="纯前端、本地优先的简历制作工具，使用 IndexedDB 保存简历数据。"
+    />
+    <title>墨本简历 - 本地优先简历制作工具</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand" aria-label="墨本简历">
+          <span class="brand-mark" aria-hidden="true">M</span>
+          <div>
+            <strong>墨本简历</strong>
+            <span>本地优先 MVP</span>
+          </div>
+        </div>
+
+        <div class="top-actions" aria-label="全局操作">
+          <!-- 模板切换功能暂时注释，保留脚本中的兼容逻辑以便读取旧偏好和旧 JSON。 -->
+          <!-- <label class="control">
+            <span>模板</span>
+            <select id="templateSelect" aria-label="选择简历模板"></select>
+          </label> -->
+          <button
+            id="beautifyBtn"
+            class="button"
+            type="button"
+            aria-expanded="false"
+            aria-controls="beautifyPopover"
+          >
+            美化
+          </button>
+          <div id="beautifyPopover" class="beautify-popover" hidden>
+            <label class="control range-control beautify-control">
+              <span>字号</span>
+              <input
+                id="fontScale"
+                type="range"
+                min="0.92"
+                max="1.08"
+                step="0.01"
+                aria-label="调整预览字号"
+              />
+            </label>
+            <label class="control beautify-control">
+              <span>密度</span>
+              <select id="densitySelect" aria-label="选择排版密度"></select>
+            </label>
+            <label class="control checkbox-control beautify-control">
+              <input id="bulletToggle" type="checkbox" />
+              <span>分点符</span>
+            </label>
+            <div class="beautify-control beautify-tone">
+              <span>色调</span>
+              <div id="toneOptions" class="tone-options" aria-label="选择栏目名称色调">
+                <button class="tone-option" type="button" data-tone="black" aria-label="黑色">
+                  <span class="tone-dot tone-black" aria-hidden="true"></span>
+                  黑
+                </button>
+                <button class="tone-option" type="button" data-tone="blue" aria-label="蓝色">
+                  <span class="tone-dot tone-blue" aria-hidden="true"></span>
+                  蓝
+                </button>
+                <button class="tone-option" type="button" data-tone="red" aria-label="红色">
+                  <span class="tone-dot tone-red" aria-hidden="true"></span>
+                  红
+                </button>
+                <button class="tone-option" type="button" data-tone="green" aria-label="绿色">
+                  <span class="tone-dot tone-green" aria-hidden="true"></span>
+                  绿
+                </button>
+              </div>
+            </div>
+          </div>
+          <button id="smartFitBtn" class="button" type="button">智能一页</button>
+          <button id="importBtn" class="button" type="button">导入 JSON</button>
+          <input
+            id="importFile"
+            class="file-input-hidden"
+            type="file"
+            accept=".json,application/json"
+            tabindex="-1"
+            aria-hidden="true"
+          />
+          <button id="exportBtn" class="button" type="button">导出 JSON</button>
+          <button id="printBtn" class="button primary" type="button">打印 / PDF</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="editor-panel" aria-label="简历编辑区">
+          <section class="privacy-panel" aria-label="隐私说明">
+            <strong>隐私说明</strong>
+            <p>
+              简历内容只保存在本机浏览器的 IndexedDB，字号、密度、色调等偏好保存在
+              localStorage。工具没有登录、后端、统计脚本、外部字体或 CDN；JSON 导入导出也只在当前设备完成。
+            </p>
+          </section>
+
+          <section id="personalSection" class="editor-section"></section>
+
+          <section class="editor-section">
+            <div class="section-heading">
+              <div>
+                <h2>模块顺序</h2>
+                <p>拖拽模块左侧把手，或用上下按钮调整教育、经历、项目、技能等模块。</p>
+              </div>
+            </div>
+            <div class="add-module-row">
+              <select id="newSectionType" aria-label="选择要添加的模块"></select>
+              <button id="addSectionBtn" class="button" type="button">添加模块</button>
+            </div>
+            <div id="sectionList" class="module-list" aria-label="模块列表"></div>
+          </section>
+
+          <section id="moduleEditor" class="editor-section"></section>
+        </aside>
+
+        <section class="preview-panel" aria-label="简历实时预览">
+          <div class="preview-toolbar">
+            <div>
+              <strong>实时预览</strong>
+              <span id="saveStatus">正在准备本地存储</span>
+            </div>
+            <span id="pageCount">A4</span>
+          </div>
+          <div id="previewPages" class="paper-stack"></div>
+          <div id="measureArea" aria-hidden="true"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
