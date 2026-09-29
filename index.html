@@ -17,89 +17,52 @@
           <span class="brand-mark" aria-hidden="true">M</span>
           <div>
             <strong>墨本简历</strong>
-            <span>本地优先 MVP</span>
           </div>
         </div>
 
         <div class="top-actions" aria-label="全局操作">
+          <label class="control top-control"><span>字号</span><input id="topFontScale" type="range" min="0.92" max="1.08" step="0.01" aria-label="字号" /><output id="fontScaleValue"></output></label>
+          <label class="control top-control"><span>行距</span><input id="lineScale" type="range" min="1.1" max="1.8" step="0.01" aria-label="行距" /><output id="lineScaleValue"></output></label>
+          <div id="topToneOptions" class="top-tone-options" role="group" aria-label="栏目标题色调"></div>
+          <button id="manageBtn" class="button" type="button" aria-expanded="false" aria-controls="editorPanel">内容</button>
           <!-- 模板切换功能暂时注释，保留脚本中的兼容逻辑以便读取旧偏好和旧 JSON。 -->
           <!-- <label class="control">
             <span>模板</span>
             <select id="templateSelect" aria-label="选择简历模板"></select>
           </label> -->
-          <button
-            id="beautifyBtn"
-            class="button"
-            type="button"
-            aria-expanded="false"
-            aria-controls="beautifyPopover"
-          >
-            美化
-          </button>
-          <div id="beautifyPopover" class="beautify-popover" hidden>
-            <label class="control range-control beautify-control">
-              <span>字号</span>
-              <input
-                id="fontScale"
-                type="range"
-                min="0.92"
-                max="1.08"
-                step="0.01"
-                aria-label="调整预览字号"
-              />
-            </label>
-            <label class="control beautify-control">
-              <span>密度</span>
-              <select id="densitySelect" aria-label="选择排版密度"></select>
-            </label>
-            <label class="control checkbox-control beautify-control">
-              <input id="bulletToggle" type="checkbox" />
-              <span>分点符</span>
-            </label>
-            <div class="beautify-control beautify-tone">
-              <span>色调</span>
-              <div id="toneOptions" class="tone-options" aria-label="选择栏目名称色调">
-                <button class="tone-option" type="button" data-tone="black" aria-label="黑色">
-                  <span class="tone-dot tone-black" aria-hidden="true"></span>
-                  黑
-                </button>
-                <button class="tone-option" type="button" data-tone="blue" aria-label="蓝色">
-                  <span class="tone-dot tone-blue" aria-hidden="true"></span>
-                  蓝
-                </button>
-                <button class="tone-option" type="button" data-tone="red" aria-label="红色">
-                  <span class="tone-dot tone-red" aria-hidden="true"></span>
-                  红
-                </button>
-                <button class="tone-option" type="button" data-tone="green" aria-label="绿色">
-                  <span class="tone-dot tone-green" aria-hidden="true"></span>
-                  绿
-                </button>
-              </div>
-            </div>
-          </div>
           <button id="smartFitBtn" class="button" type="button">智能一页</button>
-          <button id="importBtn" class="button" type="button">导入 JSON</button>
+          <button id="importBtn" class="button" type="button">导入</button>
           <input
             id="importFile"
             class="file-input-hidden"
             type="file"
-            accept=".json,application/json"
+            accept=".pdf,application/pdf"
             tabindex="-1"
             aria-hidden="true"
           />
-          <button id="exportBtn" class="button" type="button">导出 JSON</button>
-          <button id="printBtn" class="button primary" type="button">打印 / PDF</button>
+          <div id="exportMenu" class="export-menu">
+            <button id="exportBtn" class="button primary" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="exportOptions">导出</button>
+            <div id="exportOptions" class="export-options" role="menu" aria-label="选择导出格式">
+              <button type="button" role="menuitem" data-export="pdf">PDF</button>
+              <button type="button" role="menuitem" data-export="json">JSON</button>
+              <button type="button" role="menuitem" data-export="md">Markdown</button>
+            </div>
+          </div>
         </div>
       </header>
 
       <main class="workspace">
-        <aside class="editor-panel" aria-label="简历编辑区">
+        <aside id="editorPanel" class="editor-panel" aria-label="内容" hidden>
+          <div class="drawer-heading"><strong>内容</strong><button id="closeManageBtn" class="icon-button" type="button" aria-label="关闭">×</button></div>
+          <section class="editor-section drawer-layout">
+            <label class="control"><span>密度</span><select id="densitySelect" aria-label="选择排版密度"></select></label>
+            <label class="control checkbox-control"><input id="bulletToggle" type="checkbox" /><span>分点符</span></label>
+          </section>
           <section class="privacy-panel" aria-label="隐私说明">
             <strong>隐私说明</strong>
             <p>
               简历内容只保存在本机浏览器的 IndexedDB，字号、密度、色调等偏好保存在
-              localStorage。工具没有登录、后端、统计脚本、外部字体或 CDN；JSON 导入导出也只在当前设备完成。
+              localStorage。工具没有登录、后端、统计脚本、外部字体或 CDN；PDF 导入和文件导出也只在当前设备完成。
             </p>
           </section>
 
@@ -125,17 +88,35 @@
         <section class="preview-panel" aria-label="简历实时预览">
           <div class="preview-toolbar">
             <div>
-              <strong>实时预览</strong>
-              <span id="saveStatus">正在准备本地存储</span>
+              <strong>编辑简历</strong>
+              <span id="saveStatus" role="status" aria-live="polite"></span>
             </div>
             <span id="pageCount">A4</span>
           </div>
           <div id="previewPages" class="paper-stack"></div>
           <div id="measureArea" aria-hidden="true"></div>
+          <p class="privacy-note">简历只保存在本机浏览器中，不上传任何内容。</p>
         </section>
       </main>
     </div>
 
+    <dialog id="importReview" class="import-review" aria-labelledby="importReviewTitle">
+      <form method="dialog">
+        <h2 id="importReviewTitle">确认导入 PDF</h2>
+        <p id="importReviewSummary"></p>
+        <label for="importReviewText">提取的文字</label>
+        <textarea id="importReviewText" spellcheck="false"></textarea>
+        <p class="import-review-note">可在这里修正文字。确认后将替换当前简历；扫描图片 PDF 需要先进行文字识别。</p>
+        <div class="import-review-actions">
+          <button id="cancelPdfImport" class="button" type="button">取消</button>
+          <button id="confirmPdfImport" class="button primary" type="button">导入并替换</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./vendor/build/pdf.min.js" defer></script>
+    <script src="./vendor/build/pdf.worker.min.js" defer></script>
+    <script src="./pdf-io.js" defer></script>
     <script src="./app.js" defer></script>
   </body>
 </html>
