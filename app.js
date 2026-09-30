@@ -6,6 +6,7 @@ const STORE_NAME = "resumes";
 const RESUME_ID = "default";
 const PREF_KEY = "moben-resume-preferences";
 const MAX_PHOTO_EDGE = 720;
+const PREVIOUS_SAMPLE_DIGEST = "557bb77207e35fcc93e4cbbc5da8a0a4307faea90a844bba6f31cacb5cfb9b2c";
 
 const SECTION_TYPES = {
   education: "教育经历",
@@ -21,10 +22,10 @@ const TEMPLATES = [
 ];
 const ACTIVE_TEMPLATE = "classic";
 const CONTACT_FIELDS = [
-  { key: "phone", label: "电话", placeholder: "138 0000 0000" },
+  { key: "phone", label: "电话", placeholder: "000 0000 0000" },
   { key: "email", label: "邮箱", placeholder: "name@example.com" },
-  { key: "city", label: "城市", placeholder: "上海" },
-  { key: "links", label: "链接", placeholder: "github.com/name / portfolio.example" },
+  { key: "city", label: "城市", placeholder: "所在城市" },
+  { key: "links", label: "链接", placeholder: "example.com/portfolio" },
 ];
 const DEFAULT_CONTACT_ORDER = CONTACT_FIELDS.map((field) => field.key);
 
@@ -216,6 +217,11 @@ async function init() {
     const stored = await readResume();
     if (stored) {
       resume = normalizeResume(stored);
+      if (await isUneditedPreviousSample(stored)) {
+        const replacement = makeDefaultResume();
+        await writeResume(replacement);
+        resume = replacement;
+      }
       setSaveStatus("");
     } else {
       await writeResume(resume);
@@ -228,6 +234,19 @@ async function init() {
 
   selectedSectionId = resume.sections[0]?.id || "";
   renderAll();
+}
+
+async function isUneditedPreviousSample(stored) {
+  if (!stored?.personal || !Array.isArray(stored.sections) || !globalThis.crypto?.subtle) return false;
+  try {
+    const sections = stored.sections.map(({ id, ...section }) => section);
+    const bytes = new TextEncoder().encode(JSON.stringify({ personal: stored.personal, sections }));
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+    const hex = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    return hex === PREVIOUS_SAMPLE_DIGEST;
+  } catch {
+    return false;
+  }
 }
 
 function renderSelects() {
@@ -549,7 +568,7 @@ function renderPersonalEditor() {
       fieldControl("姓名", resume.personal.name, {
         key: "name",
         personal: true,
-        placeholder: "例如：林知远",
+        placeholder: "请输入姓名",
       }),
       fieldControl("求职方向", resume.personal.role, {
         key: "role",
@@ -559,7 +578,7 @@ function renderPersonalEditor() {
       fieldControl("电话", resume.personal.phone, {
         key: "phone",
         personal: true,
-        placeholder: "138 0000 0000",
+        placeholder: "000 0000 0000",
       }),
       fieldControl("邮箱", resume.personal.email, {
         key: "email",
@@ -569,12 +588,12 @@ function renderPersonalEditor() {
       fieldControl("城市", resume.personal.city, {
         key: "city",
         personal: true,
-        placeholder: "上海",
+        placeholder: "所在城市",
       }),
       fieldControl("链接", resume.personal.links, {
         key: "links",
         personal: true,
-        placeholder: "github.com/name / portfolio.example",
+        placeholder: "example.com/portfolio",
       }),
       fieldControl("个人简介", resume.personal.summary, {
         key: "summary",
@@ -2619,15 +2638,15 @@ function makeDefaultResume() {
     schemaVersion: 1,
     updatedAt: new Date().toISOString(),
     personal: {
-      name: "林知远",
-      role: "前端工程师 / 产品型开发者",
-      phone: "138 0000 0000",
-      email: "lin@example.com",
-      city: "上海",
-      links: "github.com/linzy · portfolio.example",
+      name: "示例人物",
+      role: "前端工程师（虚构示例）",
+      phone: "000 0000 0000",
+      email: "resume@example.com",
+      city: "示例市",
+      links: "example.com/portfolio",
       photo: "",
       summary:
-        "5 年前端与产品协作经验，擅长把复杂业务流程转化为清晰、稳定、易维护的 Web 工具。关注性能、可访问性和数据隐私，习惯用可验证的交付推动团队迭代。",
+        "本简历中的人物、机构与业绩均为虚构示例。擅长将复杂业务流程转化为清晰、易维护的 Web 工具，关注性能、可访问性和数据隐私。",
       contactOrder: [...DEFAULT_CONTACT_ORDER],
     },
     sections: [
@@ -2637,26 +2656,26 @@ function makeDefaultResume() {
         title: "工作经历",
         items: [
           {
-            company: "星河科技",
+            company: "示例科技公司",
             role: "高级前端工程师",
-            location: "上海",
+            location: "示例市",
             start: "2023.04",
             end: "至今",
             details: [
-              "负责招聘 SaaS 的简历解析、候选人看板和权限组件，支撑 20+ 企业客户日常使用。",
-              "重构表单状态与预览渲染链路，将核心页面首屏渲染时间降低约 35%。",
-              "推动设计系统落地，沉淀 40+ 可复用组件，减少跨团队重复实现。",
+              "围绕招聘系统的候选人流程，设计列表、表单和权限组件。",
+              "优化表单状态与预览渲染，改善页面响应速度与交互一致性。",
+              "整理可复用组件和测试用例，减少团队重复实现。",
             ],
           },
           {
-            company: "青舟网络",
+            company: "样例网络公司",
             role: "前端工程师",
-            location: "杭州",
+            location: "示例市",
             start: "2020.07",
             end: "2023.03",
             details: [
-              "参与搭建低代码运营后台，覆盖活动配置、数据校验、发布回滚等核心流程。",
-              "与产品、设计和后端共同梳理复杂表格交互，提升运营配置效率。",
+              "参与搭建运营后台，覆盖活动配置、数据校验和发布流程。",
+              "与产品、设计和开发团队梳理表格交互，改善配置体验。",
             ],
           },
         ],
@@ -2667,14 +2686,14 @@ function makeDefaultResume() {
         title: "项目经历",
         items: [
           {
-            name: "本地优先简历制作器",
-            role: "独立设计与开发",
-            link: "IndexedDB / A4 Preview / JSON Backup",
+            name: "演示项目：本地简历编辑器",
+            role: "独立开发（样例）",
+            link: "example.com/project",
             start: "2026.08",
             end: "",
             details: [
-              "实现结构化编辑、实时预览、模板切换、A4 分页和打印导出 PDF。",
-              "采用纯前端本地存储，不接入后端、统计脚本、外部字体或 CDN。",
+              "设计结构化编辑、实时预览、A4 分页与打印导出流程。",
+              "采用浏览器本地存储，未接入后端、统计脚本或外部字体。",
             ],
           },
         ],
@@ -2685,13 +2704,13 @@ function makeDefaultResume() {
         title: "教育经历",
         items: [
           {
-            school: "浙江大学",
+            school: "示例大学",
             degree: "本科",
             major: "软件工程",
-            location: "杭州",
+            location: "示例市",
             start: "2016.09",
             end: "2020.06",
-            details: ["主修数据结构、计算机网络、人机交互与 Web 工程。"],
+            details: ["学习数据结构、计算机网络、人机交互与 Web 工程。"],
           },
         ],
       },
