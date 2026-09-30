@@ -169,6 +169,7 @@ const els = {
   manageBtn: document.getElementById("manageBtn"),
   closeManageBtn: document.getElementById("closeManageBtn"),
   bulletToggle: document.getElementById("bulletToggle"),
+  loadSampleBtn: document.getElementById("loadSampleBtn"),
   smartFitBtn: document.getElementById("smartFitBtn"),
   importBtn: document.getElementById("importBtn"),
   importFile: document.getElementById("importFile"),
@@ -366,6 +367,8 @@ function wireEvents() {
     savePreferences();
     queuePreview();
   });
+
+  els.loadSampleBtn.addEventListener("click", loadFictionalSample);
 
   els.smartFitBtn.addEventListener("click", fitResumeToOnePage);
 
@@ -1983,6 +1986,25 @@ async function confirmPdfImport() {
     console.error("PDF import save failed:", error);
   } finally {
     els.confirmPdfImport.disabled = false;
+  }
+}
+
+async function loadFictionalSample() {
+  if (!window.confirm("确定载入新版虚构示例？这会覆盖当前简历，且无法撤销。")) return;
+  const sample = makeDefaultResume();
+  els.loadSampleBtn.disabled = true;
+  window.clearTimeout(saveTimer);
+  try {
+    if (db) await writeResume(sample);
+    resume = sample;
+    selectedSectionId = resume.sections[0]?.id || "";
+    renderAll();
+    setSaveStatus(db ? "已载入并保存虚构示例" : "已载入示例；本地自动保存不可用");
+  } catch (error) {
+    window.alert("保存失败，当前简历未改变。请检查浏览器存储空间。");
+    console.error("Sample resume save failed:", error);
+  } finally {
+    els.loadSampleBtn.disabled = false;
   }
 }
 
